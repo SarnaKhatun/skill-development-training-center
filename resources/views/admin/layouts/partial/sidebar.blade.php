@@ -397,6 +397,7 @@
                         </ul>
                     </li>
                 @endif
+                @if(\Illuminate\Support\Facades\Auth::user()->question_make_permission == 1)
                 <li class="nav-item @yield('manage-exam')">
                     <a href="#" class="nav-link @yield('exam')">
                         <i class="fa-solid fa-hexagon-nodes-bolt" style="font-size: 18px;"></i>
@@ -433,6 +434,7 @@
                         </li>
                     </ul>
                 </li>
+                @endif
                <li class="nav-item @yield('manage-staff')">
                     <a href="#" class="nav-link @yield('staff')">
                         <i class="fa-solid fa-user" style="font-size: 18px;"></i>

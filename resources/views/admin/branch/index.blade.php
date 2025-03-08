@@ -47,6 +47,10 @@
                                             <th>Institute Name</th>
                                             <th>Date</th>
                                             <th class="text-center">Status</th>
+                                            @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+                                                <th class="text-center">Question Make Permission</th>
+                                            @endif
+
                                             <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -76,6 +80,23 @@
                                                                     class="badge bg-danger">Inactive</span></a>
                                                         @endif
                                                     </td>
+                                                    @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+                                                        <td class="text-center">
+                                                            @if($item->admin_id == 1)
+                                                                <a><span
+                                                                        class="badge bg-primary">Allowed</span></a>
+                                                            @else
+                                                                @if ($item->question_make_permission == 1)
+                                                                    <a href="{{ route('admin.branch.questionMakePermission', $item->id) }}"><span
+                                                                            class="badge bg-primary">Allowed</span></a>
+                                                                @else
+                                                                    <a href="{{ route('admin.branch.questionMakePermission', $item->id) }}"><span
+                                                                            class="badge bg-danger">Denied</span></a>
+                                                                @endif
+                                                            @endif
+                                                        </td>
+                                                    @endif
+
                                                     <td class="text-center">
                                                    <span class="action-btn">
                                                        <a href="{{ route('admin.branch.edit',$item->id) }}" class=" btn-edit ">

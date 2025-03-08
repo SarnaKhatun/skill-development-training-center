@@ -555,7 +555,7 @@
                                                             style="justify-content: end">
                                                             <a class="btn btn-danger btnPrevious btnsty">Previous</a>
                                                             <button type="submit"
-                                                                class="btn btn-success btnSubmit btnsty">Submit</button>
+                                                                class="btn btn-success">Submit</button>
                                                         </div>
                                                         <!--/. form element wrap -->
 

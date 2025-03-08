@@ -157,6 +157,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/show/{id}', [BranchController::class, 'show'])->name('show');
             Route::get('/delete/{id}', [BranchController::class, 'delete'])->name('delete');
             Route::get('/status-change/{id}', [BranchController::class, 'statusChange'])->name('statusChange');
+            Route::get('/question-make-permission/{id}', [BranchController::class, 'questionMakePermission'])->name('questionMakePermission');
             Route::post('/password', [BranchController::class, 'change_password'])->name('password');
         });
         //division

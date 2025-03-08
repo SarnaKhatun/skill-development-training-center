@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password')->nullable();
             $table->tinyInteger('status')->nullable();
+            $table->tinyInteger('question_make_permission')->default(0)->comment('1=> Allowed, 0=Denied');
             $table->string('image')->nullable();
             $table->string('phone')->unique()->nullable();
             $table->string('fathers_name')->nullable();

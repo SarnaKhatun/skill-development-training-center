@@ -30,16 +30,23 @@ class BranchController extends Controller
     {
         return view('admin.branch.create');
     }
+
     public function store(BranchRequest $request)
     {
         try {
-            $this->branch->store($request->all());
-            return redirect()->route('admin.branch.index')->with('success','Branch Created Successfully');
-        }catch (Exception $e){
-            return back()->with('error','Something went to wrong');
-        }
+            $existingAdmin = Admin::where('name', $request->name)->first();
+            if ($existingAdmin) {
+                return back()->with('error', 'Name already exists! Please choose a different name.');
+            }
 
+            $this->branch->store($request->all());
+
+            return redirect()->route('admin.branch.index')->with('success', 'Branch Created Successfully');
+        } catch (Exception $e) {
+            return back()->with('error', 'Something went wrong');
+        }
     }
+
     public function edit($id){
         try{
             $data=[];
@@ -123,6 +130,24 @@ class BranchController extends Controller
                 $branch->save();
             }
             return redirect()->back()->with('success','Status Update Successfully');
+        }catch(Extension $e){
+            return response()->with('error','Sorry Something Went to Wrong');
+        }
+    }
+
+    public function questionMakePermission($id)
+     {
+        try{
+            $branch = Branch::find($id);
+            if ($branch) {
+                $branch->question_make_permission = $branch->question_make_permission ? 0 : 1;
+                $branch->save();
+                $admin_permission = Admin::where('id', $branch->admin_id)->first();
+                $admin_permission->question_make_permission = $branch->question_make_permission;
+                $admin_permission->save();
+            }
+
+            return redirect()->back()->with('success','Permission Updated Successfully');
         }catch(Extension $e){
             return response()->with('error','Sorry Something Went to Wrong');
         }

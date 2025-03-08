@@ -69,7 +69,13 @@ class WrittenExamController extends Controller
         $perPage = isset($request['perPage']) ? intval($request['perPage']) : 100;
         $currentPage = max(1, $request->input('page', 1));
         $startIndex = ($currentPage - 1) * $perPage;
-        $written_exams =  $examQuery->with('questions')->latest()->paginate($perPage);
+        if (Auth::user()->role == 1)
+        {
+            $written_exams =  $examQuery->with('questions')->latest()->paginate($perPage);
+        }
+        else {
+            $written_exams =  $examQuery->with('questions')->where('created_by', Auth::user()->id)->latest()->paginate($perPage);
+        }
 
         if ($request->ajax()) {
             return view('admin.exam.written.index_table', compact('written_exams', 'startIndex', 'date_range'))->render();

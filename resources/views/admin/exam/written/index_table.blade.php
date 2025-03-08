@@ -7,8 +7,12 @@
         <th>Course Name</th>
         <th>Exam Title</th>
         <th>Date</th>
-        <th>Created By</th>
-        <th>Status</th>
+        @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+            <th>Created By</th>
+        @endif
+        @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+            <th>Status</th>
+        @endif
         <th class="text-center">Action</th>
     </tr>
     </thead>
@@ -31,15 +35,20 @@
 
 
                 <td>{{ \Illuminate\Support\Carbon::parse($exam->date)->format('d-m-Y') }}</td>
-                <td>{{ $exam->added_by->name }}</td>
-                <td>
+
+                @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+                    <td>{{ $exam->added_by->name }}</td>
+                @endif
+                @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+                    <td>
                      <span class="action-btn">
                          <a href="{{ route('admin.written-exams.changeStatus', $exam->id) }}"
                             class="btn btn-{{ $exam->status == 1 ? 'success' : 'danger' }}">
                              {{ $exam->status == 1 ? 'Active' : 'Inactive' }}
                          </a>
                      </span>
-                </td>
+                    </td>
+                @endif
                 <td>
 
                     <span class="action-btn">

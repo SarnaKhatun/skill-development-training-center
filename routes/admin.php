@@ -102,13 +102,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('attendances', AttendanceController::class);
         Route::get('/attendance/getBatchStudents', [AttendanceController::class, 'getBatchStudents'])->name('attendance.getBatchStudents');
 
-        Route::get('/attendance/batch', [AttendanceController::class, 'getBatchAttendance'])
-            ->name('attendance.getBatchAttendance');
+        Route::get('/attendance/batch', [AttendanceController::class, 'getBatchAttendance'])->name('attendance.getBatchAttendance');
 
 
         //exam question
         Route::resource('written-exams', WrittenExamController::class);
-        //Route::get('/written-exam-delete/{id}', [WrittenExamController::class, 'destroy'])->name('written-exams.delete');
+        Route::get('/written-exam-delete/{id}', [WrittenExamController::class, 'destroy'])->name('written-exams.delete');
         Route::get('/written-exams/change-status/{id}', [WrittenExamController::class, 'changeStatus'])->name('written-exams.changeStatus');
 
         Route::get('/written-exams/{examId}/give-marks', [WrittenExamController::class, 'givenMarks'])->name('written-exams.given-marks');
@@ -121,10 +120,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 
         Route::resource('mcq-exams', MCQQuizController::class);
-        //Route::get('/mcq-exam-delete/{id}', [MCQQuizController::class, 'destroy'])->name('mcq-exams.delete');
+        Route::get('/mcq-exam-delete/{id}', [MCQQuizController::class, 'destroy'])->name('mcq-exams.delete');
         Route::get('/mcq-exams/change-status/{id}', [MCQQuizController::class, 'changeStatus'])->name('mcq-exams.changeStatus');
         Route::get('/mcq-results', [MCQQuizController::class, 'allStudentResults'])->name('mcq.result.list');
         Route::get('/mcq-result/{mcq_exam_id}/{student_id}', [MCQQuizController::class, 'studentResultDetails'])->name('mcq.result.details');
+        Route::get('delete-mcq-result/{examId}/{studentId}', [MCQQuizController::class, 'studentResultDelete'])->name('mcq.result.delete');
 
     });
     Route::middleware(['auth:admin', 'check.role:1,2'])->group(function () {
@@ -146,6 +146,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/update/{id}', [AdminController::class, 'update'])->name('update');
             Route::get('/delete/{id}', [AdminController::class, 'delete'])->name('delete');
             Route::get('/status-change/{id}', [AdminController::class, 'statusChange'])->name('statusChange');
+            Route::get('/question-make-permission/{id}', [AdminController::class, 'questionMakePermission'])->name('questionMakePermission');
+
         });
         //Branch
         Route::prefix('branch')->name('branch.')->group(function () {

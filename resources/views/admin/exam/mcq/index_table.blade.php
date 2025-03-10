@@ -9,8 +9,12 @@
         {{--                                        <th>Total Marks</th>--}}
         {{--                                        <th>Time</th>--}}
         <th>Date</th>
-        <th>Created By</th>
-        <th>Status</th>
+        @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+            <th>Created By</th>
+        @endif
+        @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+            <th>Status</th>
+        @endif
         <th class="text-center">Action</th>
     </tr>
     </thead>
@@ -34,15 +38,20 @@
                 {{--                                                <td>{{ $exam->total_mark }}</td>--}}
                 {{--                                                <td>{{ $exam->time }}</td>--}}
                 <td>{{ \Illuminate\Support\Carbon::parse($exam->date)->format('d-m-Y') }}</td>
-                <td>{{ $exam->added_by->name }}</td>
-                <td>
+                @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+                    <td>{{ $exam->added_by->name }}</td>
+                @endif
+                @if(\Illuminate\Support\Facades\Auth::user()->role == 1)
+                    <td>
                     <span class="action-btn">
                         <a href="{{ route('admin.mcq-exams.changeStatus', $exam->id) }}"
                            class="btn btn-{{ $exam->status == 1 ? 'success' : 'danger' }}">
                             {{ $exam->status == 1 ? 'Active' : 'Inactive' }}
                         </a>
                     </span>
-                </td>
+                    </td>
+
+                @endif
                 <td>
                     <span class="action-btn">
                         <a href="{{ route('admin.mcq-exams.show',$exam->id) }}" class=" btn-view">
@@ -52,10 +61,10 @@
                            class=" btn-edit ">
                             <i class="fa fa-edit"></i>
                         </a>
-{{--                        <a href="{{ route('admin.mcq-exams.delete', $exam->id) }}"--}}
-{{--                           class=" btn-delete deleteButton">--}}
-{{--                            <i class="fa fa-trash"></i>--}}
-{{--                        </a>--}}
+                        <a href="{{ route('admin.mcq-exams.delete', $exam->id) }}"
+                           class=" btn-delete deleteButton">
+                            <i class="fa fa-trash"></i>
+                        </a>
                     </span>
                 </td>
             </tr>

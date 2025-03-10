@@ -74,7 +74,12 @@ class WrittenExamController extends Controller
             $written_exams =  $examQuery->with('questions')->latest()->paginate($perPage);
         }
         else {
-            $written_exams =  $examQuery->with('questions')->where('created_by', Auth::user()->id)->latest()->paginate($perPage);
+           if (Auth::user()->question_make_permission == 1) {
+               $written_exams =  $examQuery->with('questions')->where('created_by', Auth::user()->id)->latest()->paginate($perPage);
+           }
+           else{
+               return back()->with('error', 'You dont have permission');
+           }
         }
 
         if ($request->ajax()) {
@@ -90,10 +95,14 @@ class WrittenExamController extends Controller
      */
     public function create()
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $data = [];
         $data['batches'] = Batch::where('status', 1)->latest()->get();
         $data['courses'] = Course::latest()->get();
         return view('admin.exam.written.create', $data);
+
     }
 
     /**
@@ -137,6 +146,9 @@ class WrittenExamController extends Controller
      */
     public function show(string $id)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $data = [];
         $data['detail'] = WrittenExam::with('questions')->find($id);
         return view('admin.exam.written.show-details', $data);
@@ -148,11 +160,15 @@ class WrittenExamController extends Controller
      */
     public function edit(string $id)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $data = [];
         $data['exam'] = WrittenExam::with('questions')->find($id);
         $data['batches'] = Batch::where('status', 1)->latest()->get();
         $data['courses'] = Course::latest()->get();
         return view('admin.exam.written.edit', $data);
+
     }
 
     /**
@@ -199,27 +215,64 @@ class WrittenExamController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+
+
     public function destroy($id)
     {
-        $exam_delete = WrittenExam::find($id);
-        $exam_delete->delete();
-        return redirect()->route('admin.written-exams.index')->with('success', 'Written Exam Data Deleted Successfully');
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
+
+        $exam = WrittenExam::find($id);
+
+        if (!$exam) {
+            return back()->with('error', 'Exam not found');
+        }
+
+        $questions = WrittenQuestion::where('written_exam_id', $exam->id)->get();
+
+        if ($questions->isNotEmpty()) {
+            foreach ($questions as $question) {
+                $question->delete();
+            }
+        }
+
+
+        $results = WrittenExamMark::where('exam_id', $exam->id)->get();
+
+        if ($results->isNotEmpty()) {
+            foreach ($results as $result) {
+                $result->delete();
+            }
+        }
+
+        $exam->delete();
+
+        return redirect()->route('admin.written-exams.index')->with('success', 'Written Exam and its related data deleted successfully');
     }
+
 
 
     public function changeStatus($examId)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $exam = WrittenExam::findOrFail($examId);
         $exam->status = !$exam->status;
         $exam->save();
 
         return back()->with('status', 'Exam status updated successfully!');
+
     }
 
 
 
     public function givenMarks($examId)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $exam = WrittenExam::find($examId);
 
 
@@ -228,12 +281,16 @@ class WrittenExamController extends Controller
         $students = Student::whereIn('batch_id', $batchIds)->get();
 
         return view('admin.exam.written.given_marks', compact('exam', 'students'));
+
     }
 
 
 
     public function getMarks($examId)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $exam = WrittenExam::find($examId);
 
         $batchIds = json_decode($exam->batch_id, true) ?? [];
@@ -241,11 +298,15 @@ class WrittenExamController extends Controller
         $students = Student::whereIn('batch_id', $batchIds)->get();
 
         return view('admin.exam.get-marks', compact('exam', 'students'));
+
     }
 
 
     public function saveMarks(Request $request, $examId)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $exam = WrittenExam::find($examId);
 
         foreach ($request->marks as $studentId => $marks) {
@@ -261,12 +322,16 @@ class WrittenExamController extends Controller
         }
 
         return redirect()->route('admin.written-exams.index')->with('success', 'Marks have been saved successfully!');
+
     }
 
 
 
     public function allResult(Request $request)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $student_id = $request->student_id;
 
         $results1 = StudentSubmitAnswer::select(
@@ -319,6 +384,7 @@ class WrittenExamController extends Controller
         }
 
         return view('admin.exam.result_list', compact('results2', 'results1', 'students'));
+
     }
 
 

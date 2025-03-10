@@ -68,8 +68,18 @@ class MCQQuizController extends Controller
         $perPage = isset($request['perPage']) ? intval($request['perPage']) : 100;
         $currentPage = max(1, $request->input('page', 1));
         $startIndex = ($currentPage - 1) * $perPage;
+        if (Auth::user()->role == 1)
+        {
         $mcq_exams =  $mcqExamQuery->with('questions')->latest()->paginate($perPage);
-
+        }
+        else {
+            if (Auth::user()->question_make_permission == 1) {
+                $mcq_exams =  $mcqExamQuery->with('questions')->where('created_by', Auth::user()->id)->latest()->paginate($perPage);
+            }
+            else{
+                return back()->with('error', 'You dont have permission');
+            }
+        }
         if ($request->ajax()) {
             return view('admin.exam.mcq.index_table', compact('mcq_exams', 'startIndex', 'date_range'))->render();
         } else {
@@ -83,6 +93,9 @@ class MCQQuizController extends Controller
      */
     public function create()
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $data = [];
         $data['batches'] = Batch::where('status', 1)->latest()->get();
         $data['courses'] = Course::latest()->get();
@@ -134,6 +147,9 @@ class MCQQuizController extends Controller
      */
     public function show(string $id)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $detail = McqExam::with('questions')->find($id);
 
         if (!$detail) {
@@ -147,6 +163,9 @@ class MCQQuizController extends Controller
 
     public function edit(string $id)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $data = [];
         $data['exam'] = McqExam::with('questions')->findOrFail($id);
         $data['batches'] = Batch::where('status', 1)->latest()->get();
@@ -222,7 +241,36 @@ class MCQQuizController extends Controller
      */
     public function destroy($id)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
+
         $exam_delete = McqExam::find($id);
+
+        if (!$exam_delete) {
+            return back()->with('error', 'Exam not found');
+        }
+
+        $questions = McqExamOption::where('mcq_exam_id', $exam_delete->id)->get();
+
+        if ($questions->isNotEmpty())
+        {
+            foreach ($questions as $question)
+            {
+                $question->delete();
+            }
+        }
+
+        $submit_answers = StudentSubmitAnswer::where('mcq_exam_id', $exam_delete->id)->get();
+
+        if ($submit_answers->isNotEmpty())
+        {
+            foreach ($submit_answers as $answer)
+            {
+                $answer->delete();
+            }
+        }
+
         $exam_delete->delete();
         return redirect()->route('admin.mcq-exams.index')->with('success', 'MCQ Data Deleted Successfully');
     }
@@ -230,6 +278,9 @@ class MCQQuizController extends Controller
 
     public function changeStatus($examId)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $exam = McqExam::findOrFail($examId);
         $exam->status = !$exam->status;
         $exam->save();
@@ -239,6 +290,8 @@ class MCQQuizController extends Controller
     public function allStudentResults(Request $request)
     {
         $date_range = $request['date_range'];
+        $user = Auth::user();
+
         $query = StudentSubmitAnswer::select(
             'students.id as student_id',
             'students.name_en as student_name',
@@ -255,7 +308,20 @@ class MCQQuizController extends Controller
             ->join('students', 'students.id', '=', 'student_submit_answers.student_id')
             ->join('mcq_exams', 'mcq_exams.id', '=', 'student_submit_answers.mcq_exam_id')
             ->join('courses', 'courses.id', '=', 'mcq_exams.course_id')
-            ->groupBy('students.id', 'students.name_en',  'student_submit_answers.created_at', 'students.student_roll', 'courses.name', 'mcq_exams.id', 'mcq_exams.exam_name', 'mcq_exams.total_mark');
+            ->groupBy(
+                'students.id', 'students.name_en', 'student_submit_answers.created_at',
+                'students.student_roll', 'courses.name', 'mcq_exams.id',
+                'mcq_exams.exam_name', 'mcq_exams.total_mark'
+            );
+
+
+        if ($user->role != 1) {
+            if ($user->question_make_permission == 1) {
+                $query->where('mcq_exams.created_by', $user->id);
+            } else {
+                return back()->withErrors(['error' => 'You do not have permission to view these results.']);
+            }
+        }
 
 
         if ($request->has('searchData') && !empty($request->searchData)) {
@@ -268,25 +334,17 @@ class MCQQuizController extends Controller
             });
         }
 
-
         if (!empty($request['date_range'])) {
-
             try {
                 $dateRange = explode(' - ', $request['date_range']);
                 $startDate = Carbon::createFromFormat('d-m-Y', trim($dateRange[0]))->startOfDay();
-
                 $endDate = Carbon::createFromFormat('d-m-Y', trim($dateRange[1]))->endOfDay();
 
-                $query->where(function ($q) use ($startDate, $endDate) {
-                    $q->whereDate('student_submit_answers.created_at', '>=', $startDate)
-                        ->whereDate('student_submit_answers.created_at', '<=', $endDate);
-                });
+                $query->whereBetween('student_submit_answers.created_at', [$startDate, $endDate]);
             } catch (\Exception $e) {
                 return back()->withErrors(['date_range' => 'Invalid date range format. Please use DD-MM-YYYY - DD-MM-YYYY.']);
             }
         }
-
-
 
         $results = $query->paginate(100);
 
@@ -298,8 +356,12 @@ class MCQQuizController extends Controller
     }
 
 
+
     public function studentResultDetails($encryptedExamId, $studentId)
     {
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission');
+        }
         $mcq_exam_id = Crypt::decryptString($encryptedExamId);
 
         $submittedAnswers = StudentSubmitAnswer::where('student_id', $studentId)
@@ -318,7 +380,42 @@ class MCQQuizController extends Controller
         $obtainedMarks = $totalQuestions > 0 ? ($totalMark / $totalQuestions) * $correctCount : 0;
 
         return view('admin.exam.mcq.result-details', compact('submittedAnswers', 'questions', 'obtainedMarks', 'exam', 'student'));
+
     }
+
+
+    public function studentResultDelete($examId, $studentId)
+    {
+
+        if (Auth::user()->question_make_permission != 1) {
+            return back()->with('error', 'You do not have permission.');
+        }
+
+
+        $exam = McqExam::find($examId);
+        $student = Student::find($studentId);
+
+        if (!$exam || !$student) {
+            return back()->with('error', 'Exam or Student not found.');
+        }
+
+
+        $submittedAnswers = StudentSubmitAnswer::where('student_id', $studentId)
+            ->where('mcq_exam_id', $examId)
+            ->get();
+
+        if ($submittedAnswers->isEmpty()) {
+            return back()->with('error', 'No submitted answers found.');
+        }
+
+
+        StudentSubmitAnswer::where('student_id', $studentId)
+            ->where('mcq_exam_id', $examId)
+            ->delete();
+
+        return back()->with('success', 'Student result deleted successfully.');
+    }
+
 
 
 }

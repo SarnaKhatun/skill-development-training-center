@@ -25,6 +25,12 @@
             <td>{{ number_format($result->obtained_marks, 2) }}</td>
             <td>
                 <a href="{{ route('admin.mcq.result.details', [Crypt::encryptString($result->mcq_exam_id), $result->student_id]) }}" class="btn btn-info btn-sm">View Details</a>
+
+                <a href="{{ route('admin.mcq.result.delete', ['examId' => $result->mcq_exam_id, 'studentId' => $result->student_id]) }}"
+                   class="btn btn-danger btn-sm deleteButton">
+                    Delete
+                </a>
+
             </td>
         </tr>
     @endforeach

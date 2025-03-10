@@ -83,4 +83,21 @@ class AdminController extends Controller
             return response()->with('error','Sorry Something Went to Wrong');
         }
     }
+
+
+    public function questionMakePermission($id)
+    {
+        try{
+            $user = Admin::find($id);
+            if ($user) {
+                $user->question_make_permission = $user->question_make_permission ? 0 : 1;
+                $user->save();
+
+            }
+
+            return redirect()->back()->with('success','Permission Updated Successfully');
+        }catch(Extension $e){
+            return response()->with('error','Sorry Something Went to Wrong');
+        }
+    }
 }

@@ -121,8 +121,7 @@
                             <!-- small box -->
                             <div class="small-box bg-info">
                                 <div class="inner">
-                                    <h3>{{ $student->paid ?? '0.00' }} ৳</h3>
-                                    <p>Paid</p>
+                                    <h3 class="text-center">{{ $student->due == 0 ? 'Thank You' : 'Pay Your Due, Please!'}} </h3>
                                 </div>
                                 <div class="icon">
                                     <i class="ion-cash"></i>
@@ -134,8 +133,7 @@
                             <!-- small box -->
                             <div class="small-box bg-danger">
                                 <div class="inner">
-                                    <h3>{{ $student->due ?? '0.00' }} ৳</h3>
-                                    <p>Due </p>
+                                    <h3 class="text-center">{{ $student->due == 0 ? 'Paid' : "Due = " .$student->due.'৳'  }} </h3>
                                 </div>
                                 <div class="icon">
                                     <i class="ion-cash"></i>

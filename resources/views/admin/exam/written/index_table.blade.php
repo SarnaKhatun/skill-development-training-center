@@ -60,10 +60,10 @@
                            class=" btn-edit ">
                             <i class="fa fa-edit"></i>
                         </a>
-{{--                        <a href="{{ route('admin.written-exams.delete', $exam->id) }}"--}}
-{{--                           class=" btn-delete deleteButton">--}}
-{{--                            <i class="fa fa-trash"></i>--}}
-{{--                        </a>--}}
+                        <a href="{{ route('admin.written-exams.delete', $exam->id) }}"
+                           class=" btn-delete deleteButton">
+                            <i class="fa fa-trash"></i>
+                        </a>
                         <a href="{{ route('admin.written-exams.given-marks', $exam->id) }}"
                            class=" btn-edit ">
                             <i class="fa fa-marker"></i>

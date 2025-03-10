@@ -184,64 +184,6 @@ class AttendanceController extends Controller
 
 
 
-
-    public function getBatchAttendance1(Request $request)
-    {
-        $request->validate([
-            'batch_id' => 'required|exists:batches,id',
-            'month' => 'required|date_format:Y-m',
-        ]);
-
-        $batchId = $request->batch_id;
-        $month = $request->month;
-
-
-        $startOfMonth = Carbon::parse($month)->startOfMonth();
-        $endOfMonth = Carbon::parse($month)->endOfMonth();
-
-
-        $students = Student::where('batch_id', $batchId)
-            ->with(['attendances' => function ($query) use ($startOfMonth, $endOfMonth) {
-                $query->whereBetween('attendance_date', [$startOfMonth, $endOfMonth]);
-            }])
-            ->get();
-
-        $formattedAttendance = [];
-        foreach ($students as $student) {
-            foreach ($student->attendances as $record) {
-
-                if (is_array($record->status)) {
-                    $statusArray = array_filter($record->status, fn($value) => !is_null($value) && $value !== '');
-                } else {
-                    $statusArray = array_filter(explode(',', trim((string) $record->status)), fn($value) => !is_null($value) && $value !== '');
-                }
-
-
-                $status = !empty($statusArray) ? implode(', ', array_map('ucfirst', $statusArray)) : '-';
-
-
-                $formattedAttendance[$student->id][] = [
-                    'date' => $record->attendance_date->toDateString(),
-                    'status' => $status,
-                ];
-            }
-        }
-
-
-        $dates = collect(CarbonPeriod::create($startOfMonth, $endOfMonth))
-            ->map(fn($date) => $date->toDateString())
-            ->toArray();
-
-        return response()->json([
-            'students' => $students,
-            'attendanceData' => $formattedAttendance,
-            'dates' => $dates,
-        ]);
-    }
-
-
-
-
     /**
      * Display the specified resource.
      */

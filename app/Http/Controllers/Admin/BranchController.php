@@ -89,10 +89,21 @@ class BranchController extends Controller
             'signature_img' => 'nullable|image|mimes:jpeg,png,jpg|dimensions:width=80,height=40',
         ]);
         try {
-            $this->branch->update($request->all(),$id);
-            return redirect()->back()->with('success','Branch updated Successfully');
-        }catch (Exception $e){
-            return redirect()->back()->with('error','Sorry Something went to wrong');
+
+            $branch = Branch::findOrFail($id);
+            $existingAdmin = Admin::where('name', $request->name)->first();
+            if ($existingAdmin) {
+                if ($branch->admin_id != $existingAdmin->id) {
+                    return back()->with('error', 'Name already exists! Please choose a different name.');
+                }
+            }
+
+
+            $this->branch->update($request->all(), $id);
+
+            return redirect()->back()->with('success', 'Branch updated Successfully');
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Sorry, something went wrong');
         }
     }
     public function show($id){

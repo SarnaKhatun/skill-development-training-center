@@ -107,8 +107,7 @@
                                 <div class="inner text-center">
                                     <h4>{{ $student->name_en ?? ''}}</h4>
                                     <p>Roll : {{ $student->student_roll ?? ''}} , Reg : {{ $student->student_registration_no ?? ''}}</p>
-                                    <p>Admit : {{ $student->created_at->format('F j, Y') }}
-                                        ({{ $student->created_at->diffForHumans() }})</p>
+
                                 </div>
                                 <div class="icon">
                                     <i class="ion-android-person"></i>
